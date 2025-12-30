@@ -3,7 +3,7 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 
 export const metadata = {
-  title: "My Bakery",
+  title: "Yuktta Bakes",
   description: "Delicious brownies, cookies, and laddus",
 };
 
