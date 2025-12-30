@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-brand-dark: #2C2421;   /* Dark brown */
+  --color-brand-peach: #F6A785;  /* Peach accent */
+  --color-brand-light: #EED6C4;  /* Optional lighter shade */
+  --color-brand-cream: #FFF8F0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-brand-dark: var(--color-brand-dark);
+  --color-brand-peach: var(--color-brand-peach);
+  --color-brand-light: var(--color-brand-light);
+  --color-brand-cream: var(--color-brand-cream);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Standard content wrapper for consistent left/right alignment */
+/* .container-wrapper {
+  @apply mx-auto px-6 lg:px-16;
+  max-width: 1400px;
+} */
+
+/* container mx-auto pl-4 pr-4 */
+
+/* Shared container for consistent left/right alignment */
+.container-wrapper {
+  @apply mx-auto;
+  max-width: 1675px; /* still keep a safe max width */
+  padding-left: 1rem;   /* px-4 */
+  padding-right: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .container-wrapper {
+    padding-left: 2rem; /* lg:px-8 */
+    padding-right: 2rem;
+  }
+}
+
+/* Swiper pagination custom styles */
+.hero-swiper .swiper-pagination-bullet {
+  background-color: white !important; /* default color */
+  opacity: 0.7;
+}
+
+.hero-swiper .swiper-pagination-bullet-active {
+  background-color: white !important; /* active dot color */
+  opacity: 1;
+}
+
+/* Move Swiper dots to bottom-right in Hero */
+.hero-swiper .swiper-pagination {
+  bottom: 1rem !important;   /* distance from bottom */
+  right: 1rem !important;    /* distance from right */
+  left: auto !important;     /* prevent centering */
+  width: auto !important;    /* don't stretch full width */
+}
+
+
+/* Diagonal cut for Hero right side */
+.clip-diagonal {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%, 20% 0);
+}
+
+/* Enable perspective for 3D card flip */
+.perspective {
+  perspective: 1000px;
+}
+
+/* //optional: smoother 3D rendering on some browsers
+.perspective > * {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+} */
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 0.4s ease-in-out;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+.full-width-section {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  overflow-x: hidden;
+}
