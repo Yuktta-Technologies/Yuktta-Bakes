@@ -13,37 +13,65 @@ model Product {
   slug        String   @unique
   category    String
   description String?
+
   imageUrl    String?
+  videoUrl    String?
+
   isAvailable Boolean  @default(true)
 
-  variants    ProductVariant[]
+  options     VariantOption[]
+  prices      VariantPrice[]
   tags        ProductTag[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model ProductVariant {
-  id        String   @id @default(uuid())
+// WHAT CAN CHANGE (format, eggType, sweetener, flour, weight, pieces, assortmentType)
+model VariantOption {
+  id        String @id @default(uuid())
+  name      String   // format, eggType, sweetener, flour, weight, pieces, assortmentType
+  label     String   // UI label
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
 
-  label     String
-  value     Int
-  unit      VariantUnit
-  price     Float
-
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  values    VariantValue[]
 }
 
+// ACTUAL CHOICES (eggless, tin, jaggery, ragi, 500g, 12pcs)
+model VariantValue {
+  id          String  @id @default(uuid())
+  code        String  // internal value
+  label       String  // display value
+  isAvailable Boolean @default(true)
+
+  option      VariantOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId    String
+}
+
+// PRICE FOR A SPECIFIC COMBINATION
+model VariantPrice {
+  id          String   @id @default(uuid())
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+
+  combination Json     // { format: "tin", eggType: "eggless", weight: "500g" }
+  price       Float
+  isAvailable Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+}
+
+// TAGS
 model Tag {
   id    String @id @default(uuid())
-  name  String @unique   // healthy, eggless, egg-based
+  name  String @unique
 
   products ProductTag[]
 }
 
+// PRODUCT–TAG JOIN TABLE
 model ProductTag {
   productId String
   tagId     String
@@ -52,9 +80,4 @@ model ProductTag {
   tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([productId, tagId])
-}
-
-enum VariantUnit {
-  GRAM
-  PIECE
 }
