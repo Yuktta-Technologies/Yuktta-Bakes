@@ -1,7 +1,83 @@
 import { prisma } from "../lib/prisma";
 import { filterValidPrices } from "../utils/priceFilter";
 
+/**
+ * Apply Highest Discount Wins rule
+ */
+function applyBestOffer(
+  basePrice: number,
+  product: any,
+  offers: any[]
+) {
+  let bestDiscount = 0;
+  let bestOffer = null;
+
+  for (const offer of offers) {
+    let applies = false;
+
+    if (offer.appliesTo === "ALL") {
+      applies = true;
+    }
+
+    if (
+      offer.appliesTo === "CATEGORY" &&
+      offer.category === product.category
+    ) {
+      applies = true;
+    }
+
+    if (
+      offer.appliesTo === "PRODUCT" &&
+      offer.productId === product.id
+    ) {
+      applies = true;
+    }
+
+    if (!applies) continue;
+
+    let discountAmount = 0;
+
+    if (offer.type === "PERCENTAGE") {
+      discountAmount = (basePrice * offer.value) / 100;
+    }
+
+    if (offer.type === "FLAT") {
+      discountAmount = offer.value;
+    }
+
+    if (discountAmount > bestDiscount) {
+      bestDiscount = discountAmount;
+      bestOffer = offer;
+    }
+  }
+
+  const finalPrice = Math.max(basePrice - bestDiscount, 0);
+
+  return {
+    finalPrice,
+    discountAmount: bestDiscount,
+    appliedOffer: bestOffer
+      ? {
+          id: bestOffer.id,
+          name: bestOffer.name,
+          type: bestOffer.type,
+          value: bestOffer.value,
+        }
+      : null,
+  };
+}
+
 export async function fetchAllProducts() {
+  const now = new Date();
+
+  const activeOffers = await prisma.offer.findMany({
+    where: {
+      isActive: true,
+      startDate: { lte: now },
+      endDate: { gte: now },
+    },
+  });
+
   const products = await prisma.product.findMany({
     where: {
       isAvailable: true,
@@ -44,17 +120,38 @@ export async function fetchAllProducts() {
           })),
         })),
 
-        prices: validPrices.map((price) => ({
-          id: price.id,
-          combination: price.combination,
-          price: price.price,
-        })),
+        prices: validPrices.map((price) => {
+          const offerResult = applyBestOffer(
+            price.price,
+            p,
+            activeOffers
+          );
+
+          return {
+            id: price.id,
+            combination: price.combination,
+            price: price.price,
+            finalPrice: offerResult.finalPrice,
+            discountAmount: offerResult.discountAmount,
+            appliedOffer: offerResult.appliedOffer,
+          };
+        }),
       };
     })
     .filter((p) => p.prices.length > 0);
 }
 
 export async function fetchProductBySlug(slug: string) {
+  const now = new Date();
+
+  const activeOffers = await prisma.offer.findMany({
+    where: {
+      isActive: true,
+      startDate: { lte: now },
+      endDate: { gte: now },
+    },
+  });
+
   const product = await prisma.product.findUnique({
     where: { slug },
     include: {
@@ -97,10 +194,21 @@ export async function fetchProductBySlug(slug: string) {
       })),
     })),
 
-    prices: validPrices.map((price) => ({
-      id: price.id,
-      combination: price.combination,
-      price: price.price,
-    })),
+    prices: validPrices.map((price) => {
+      const offerResult = applyBestOffer(
+        price.price,
+        product,
+        activeOffers
+      );
+
+      return {
+        id: price.id,
+        combination: price.combination,
+        price: price.price,
+        finalPrice: offerResult.finalPrice,
+        discountAmount: offerResult.discountAmount,
+        appliedOffer: offerResult.appliedOffer,
+      };
+    }),
   };
 }

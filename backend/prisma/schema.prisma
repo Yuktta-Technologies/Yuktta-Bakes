@@ -8,65 +8,67 @@ datasource db {
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
-  slug        String   @unique
+  slug        String  @unique
   category    String
   description String?
 
-  imageUrl    String?
-  videoUrl    String?
+  imageUrl String?
+  videoUrl String?
 
-  isAvailable Boolean  @default(true)
+  isAvailable Boolean @default(true)
 
-  options     VariantOption[]
-  prices      VariantPrice[]
-  tags        ProductTag[]
+  options VariantOption[]
+  prices  VariantPrice[]
+  tags    ProductTag[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  offers Offer[] // 👈 ADD THIS
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // WHAT CAN CHANGE (format, eggType, sweetener, flour, weight, pieces, assortmentType)
 model VariantOption {
-  id        String @id @default(uuid())
-  name      String   // format, eggType, sweetener, flour, weight, pieces, assortmentType
-  label     String   // UI label
+  id    String @id @default(uuid())
+  name  String // format, eggType, sweetener, flour, weight, pieces, assortmentType
+  label String // UI label
 
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
 
-  values    VariantValue[]
+  values VariantValue[]
 }
 
 // ACTUAL CHOICES (eggless, tin, jaggery, ragi, 500g, 12pcs)
 model VariantValue {
   id          String  @id @default(uuid())
-  code        String  // internal value
-  label       String  // display value
+  code        String // internal value
+  label       String // display value
   isAvailable Boolean @default(true)
 
-  option      VariantOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
-  optionId    String
+  option   VariantOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId String
 }
 
 // PRICE FOR A SPECIFIC COMBINATION
 model VariantPrice {
-  id          String   @id @default(uuid())
-  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId   String
+  id        String  @id @default(uuid())
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
 
-  combination Json     // { format: "tin", eggType: "eggless", weight: "500g" }
+  combination Json // { format: "tin", eggType: "eggless", weight: "500g" }
   price       Float
-  isAvailable Boolean  @default(true)
+  isAvailable Boolean @default(true)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 // TAGS
 model Tag {
-  id    String @id @default(uuid())
-  name  String @unique
+  id   String @id @default(uuid())
+  name String @unique
 
   products ProductTag[]
 }
@@ -83,11 +85,45 @@ model ProductTag {
 }
 
 model Admin {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  name     String?
 
   createdAt DateTime @default(now())
 }
 
+model Offer {
+  id String @id @default(uuid())
+
+  name        String
+  description String?
+
+  type  OfferType
+  value Float
+
+  isActive Boolean @default(true)
+
+  appliesTo OfferScope
+  productId String?
+  category  String?
+
+  startDate DateTime
+  endDate   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+enum OfferType {
+  PERCENTAGE
+  FLAT
+}
+
+enum OfferScope {
+  ALL
+  PRODUCT
+  CATEGORY
+}
