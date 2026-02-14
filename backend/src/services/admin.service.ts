@@ -2,6 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
 
+/**
+ * LOGIN
+ */
 export async function authenticateAdmin(email: string, password: string) {
   const admin = await prisma.admin.findUnique({ where: { email } });
   if (!admin) return null;
@@ -16,4 +19,43 @@ export async function authenticateAdmin(email: string, password: string) {
   );
 
   return { token, admin };
+}
+
+/**
+ * TOGGLE PRODUCT
+ */
+export async function toggleProductAvailability(
+  id: string,
+  isAvailable: boolean
+) {
+  return prisma.product.update({
+    where: { id },
+    data: { isAvailable },
+  });
+}
+
+/**
+ * TOGGLE VARIANT VALUE
+ */
+export async function toggleVariantValueAvailability(
+  id: string,
+  isAvailable: boolean
+) {
+  return prisma.variantValue.update({
+    where: { id },
+    data: { isAvailable },
+  });
+}
+
+/**
+ * TOGGLE PRICE
+ */
+export async function togglePriceAvailability(
+  id: string,
+  isAvailable: boolean
+) {
+  return prisma.variantPrice.update({
+    where: { id },
+    data: { isAvailable },
+  });
 }
